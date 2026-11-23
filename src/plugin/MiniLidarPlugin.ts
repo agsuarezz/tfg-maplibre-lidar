@@ -1,4 +1,5 @@
 import type * as maplibregl from 'maplibre-gl';
+import { loadCopc, type CopcLoadOptions } from './CopcLoader';
 import { PointCloudLayer, type Point3D } from './PointCloudLayer';
 
 export type { Point3D };
@@ -81,6 +82,25 @@ export class MiniLidarPlugin implements maplibregl.IControl {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`No se pudo cargar ${url} (${res.status})`);
     this.loadPoints(parseXYZ(await res.text()), flyTo);
+  }
+
+  /** Descarga y renderiza progresivamente por niveles (LOD) un archivo .copc.laz. */
+  async loadCopc(
+    url: string,
+    flyTo = true,
+    options: Omit<CopcLoadOptions, 'onProgress'> = {}
+  ): Promise<void> {
+    const points = await loadCopc(url, {
+      ...options,
+      onProgress: (pts, depth) => {
+        this.loadPoints(pts, false);
+        if (this.countEl) {
+          this.countEl.textContent = `${pts.length.toLocaleString('es-ES')} puntos (LOD ${depth})`;
+        }
+      },
+    });
+    if (this.countEl) this.countEl.textContent = `${points.length.toLocaleString('es-ES')} puntos`;
+    if (flyTo) this.flyToCloud();
   }
 
   flyToCloud(): void {

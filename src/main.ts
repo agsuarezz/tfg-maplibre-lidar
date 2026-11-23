@@ -23,6 +23,6 @@ map.addControl(new maplibregl.NavigationControl(), 'top-right');
 
 const lidar = new MiniLidarPlugin({ pointSize: 3 });
 map.addControl(lidar, 'top-left');
-lidar.loadXYZ('/eii-ulpgc.xyz', false).catch((err) => {
+lidar.loadCopc('/eii-ulpgc.copc.laz', false).catch((err) => {
   console.error('Error cargando nube de puntos:', err);
 });
